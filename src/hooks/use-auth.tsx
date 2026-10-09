@@ -13,6 +13,7 @@ interface AuthContextType {
   clientProfile: Client | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  accessDisabled: boolean;
   signIn: (payload: SignInPayload) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
@@ -24,18 +25,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [clientProfile, setClientProfile] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [accessDisabled, setAccessDisabled] = useState(false);
 
   const fetchClientProfile = async (userId: string) => {
     // Resolve via client_portal_users → clients
     const { data: link } = await supabase
       .from("client_portal_users")
-      .select("client_id")
+      .select("client_id, is_active")
       .eq("user_id", userId)
       .maybeSingle();
     if (!link?.client_id) {
       setClientProfile(null);
+      setAccessDisabled(false);
       return;
     }
+    if (link.is_active === false) {
+      // Service period ended — team disabled this client's portal access.
+      setClientProfile(null);
+      setAccessDisabled(true);
+      return;
+    }
+    setAccessDisabled(false);
     const { data: client } = await supabase
       .from("clients")
       .select("*")
@@ -84,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setClientProfile(null);
+    setAccessDisabled(false);
   };
 
   return (
@@ -94,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clientProfile,
         isLoading,
         isAuthenticated: !!session,
+        accessDisabled,
         signIn,
         signOut,
       }}

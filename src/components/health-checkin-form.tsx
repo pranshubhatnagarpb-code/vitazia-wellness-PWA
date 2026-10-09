@@ -183,6 +183,7 @@ export function HealthCheckinForm({ clientProfile, onClose, onSaved }: Props) {
   const [form, setForm] = useState<FormState>(emptyForm(today));
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const branch = getClientBranch(clientProfile);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
@@ -190,23 +191,22 @@ export function HealthCheckinForm({ clientProfile, onClose, onSaved }: Props) {
 
   const handleSubmit = async () => {
     setSaving(true);
-    try {
-      const { error } = await supabase.from("client_progress_entries").insert({
-        ...form,
-        client_id: clientProfile.id,
-        blood_parameters: form.blood_parameters?.length ? form.blood_parameters : null,
-        period_flow: form.period_flow?.length ? form.period_flow : null,
-        pms_symptoms: form.pms_symptoms?.length ? form.pms_symptoms : null,
-        medications: form.medications?.length ? form.medications : null,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-      onSaved();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSaving(false);
+    setError(null);
+    const { error: insErr } = await supabase.from("client_progress_entries").insert({
+      ...form,
+      client_id: clientProfile.id,
+      blood_parameters: form.blood_parameters?.length ? form.blood_parameters : null,
+      period_flow: form.period_flow?.length ? form.period_flow : null,
+      pms_symptoms: form.pms_symptoms?.length ? form.pms_symptoms : null,
+      medications: form.medications?.length ? form.medications : null,
+      updated_at: new Date().toISOString(),
+    });
+    setSaving(false);
+    if (insErr) {
+      setError(insErr.message);
+      return;
     }
+    onSaved();
   };
 
   const steps = [
@@ -407,6 +407,11 @@ export function HealthCheckinForm({ clientProfile, onClose, onSaved }: Props) {
       </div>
 
       {/* Footer */}
+      {error && (
+        <div className="mx-4 mb-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
       <div className="flex items-center justify-between border-t bg-background px-4 py-3">
         <button
           type="button"

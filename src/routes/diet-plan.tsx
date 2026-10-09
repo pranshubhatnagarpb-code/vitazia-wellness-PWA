@@ -150,7 +150,7 @@ function openPlanAsPdf(
 </head>
 <body>
   ${body}
-  <div class="footer">© ${new Date().getFullYear()} Dr. Malika Kabra Rathi — Personalized Nutrition Plan</div>
+  <div class="footer">© ${new Date().getFullYear()} Vitazia Wellness — Personalized Nutrition Plan</div>
 </body>
 </html>`;
 

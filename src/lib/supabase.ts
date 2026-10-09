@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://qaaqpizwpniprtdzredy.supabase.co";
-const supabaseAnonKey = "sb_publishable_lDw94z7bp-hl105_UZib9Q_A8Wr0HKg";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? "";
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn("Supabase env vars are not set. The app will not be able to reach the database until configured.");
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
