@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { InstallPrompt } from "@/components/install-prompt";
 import "../styles.css";
 
 function ServiceEndedScreen() {
@@ -70,6 +71,7 @@ function RootComponent() {
       <AccessGate>
         <Outlet />
       </AccessGate>
+      <InstallPrompt />
     </AuthProvider>
   );
 }
